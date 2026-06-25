@@ -53,7 +53,7 @@ void BalanceManual::rightSwitchMidRise()
 {
   ChassisGimbalShooterCoverManual::rightSwitchMidRise();
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::FOLLOW);
-  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::BURST);
+  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::NORMAL);
 }
 
 void BalanceManual::ctrlZPress()
@@ -70,14 +70,13 @@ void BalanceManual::shiftPress()
 {
   ChassisGimbalShooterCoverManual::shiftPress();
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::UP_SLOPE);
-  chassis_cmd_sender_->updateSafetyPower(220);
+  chassis_cmd_sender_->updateSafetyPower(75);
 }
 
 void BalanceManual::wPress()
 {
   if (flank_)
     flank_ = !flank_;
-  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::BURST);
   ChassisGimbalShooterCoverManual::wPress();
 }
 
@@ -92,7 +91,6 @@ void BalanceManual::sPress()
 {
   if (flank_)
     flank_ = !flank_;
-  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::BURST);
   ChassisGimbalShooterCoverManual::sPress();
 }
 
