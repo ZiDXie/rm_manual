@@ -445,7 +445,7 @@ void ChassisGimbalShooterCoverManual::ctrlRPressing()
   {
     gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::TRAJ);
     double traj_yaw = M_PI * count_ / 1000;
-    double traj_pitch = 0.15;
+    double traj_pitch = 0.0;
     count_++;
     gimbal_cmd_sender_->setGimbalTraj(traj_yaw, traj_pitch);
     shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
@@ -464,6 +464,11 @@ void ChassisGimbalShooterCoverManual::ctrlRRelease()
   count_ = 0;
   gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
   shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+}
+
+void ChassisGimbalShooterCoverManual::shiftPress()
+{
+  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::BURST);
 }
 
 }  // namespace rm_manual

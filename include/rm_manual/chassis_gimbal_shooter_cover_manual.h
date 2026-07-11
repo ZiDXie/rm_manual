@@ -62,6 +62,7 @@ protected:
   void ctrlCPress() override
   {
   }
+  void shiftPress() override;
   virtual void rRelease();
   virtual void ctrlZPress();
   virtual void ctrlZRelease();

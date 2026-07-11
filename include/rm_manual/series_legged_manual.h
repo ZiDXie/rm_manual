@@ -32,7 +32,7 @@ protected:
   void rightSwitchMidRise() override;
   void rPress() override;
   void rPressing();
-  void rRelease();
+  void rRelease() override;
   void ctrlXPress() override;
   void ctrlWPressing();
   void zPress() override;
