@@ -29,7 +29,7 @@ ChassisGimbalShooterCoverManual::ChassisGimbalShooterCoverManual(ros::NodeHandle
   ros::NodeHandle buff_type_switch_nh(nh, "buff_type_switch");
   switch_buff_type_srv_ = new rm_common::SwitchDetectionCaller(buff_type_switch_nh);
   ros::NodeHandle exposure_switch_nh(nh, "exposure_switch");
-  switch_exposure_srv_ = new rm_common::SwitchDetectionCaller(exposure_switch_nh);
+  switch_exposure_srv_ = new rm_common::SwitchDetectionCaller(exposure_switch_nh, "/hk_camera/exposure_status_switch");
   ros::NodeHandle chassis_nh(nh, "chassis");
   normal_speed_scale_ = chassis_nh.param("normal_speed_scale", 1);
   low_speed_scale_ = chassis_nh.param("low_speed_scale", 0.30);
@@ -50,9 +50,8 @@ ChassisGimbalShooterCoverManual::ChassisGimbalShooterCoverManual(ros::NodeHandle
   e_event_.setEdge(boost::bind(&ChassisGimbalShooterCoverManual::ePress, this),
                    boost::bind(&ChassisGimbalShooterCoverManual::eRelease, this));
   q_event_.setRising(boost::bind(&ChassisGimbalShooterCoverManual::qPress, this));
-  z_event_.setRising(boost::bind(&ChassisGimbalShooterCoverManual::zPress, this));
-  ctrl_e_event_.setEdge(boost::bind(&ChassisGimbalShooterCoverManual::ctrlEPress, this),
-                        boost::bind(&ChassisGimbalShooterCoverManual::ctrlERelease, this));
+  z_event_.setEdge(boost::bind(&ChassisGimbalShooterCoverManual::zPress, this),
+                   boost::bind(&ChassisGimbalShooterCoverManual::zRelease, this));
 }
 
 void ChassisGimbalShooterCoverManual::remoteControlTurnOn()
@@ -144,7 +143,6 @@ void ChassisGimbalShooterCoverManual::checkKeyboard(const rm_msgs::DbusData::Con
 {
   ChassisGimbalShooterManual::checkKeyboard(dbus_data);
   ctrl_z_event_.update(dbus_data->key_ctrl & dbus_data->key_z);
-  ctrl_e_event_.update(dbus_data->key_ctrl & dbus_data->key_e);
 }
 
 void ChassisGimbalShooterCoverManual::getPitchErr(double& err)
@@ -285,38 +283,6 @@ void ChassisGimbalShooterCoverManual::eRelease()
     changeGyroSpeedMode(NORMAL);
 }
 
-void ChassisGimbalShooterCoverManual::ctrlEPress()
-{
-  switch_buff_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
-  switch_detection_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
-  switch_buff_type_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
-  switch_exposure_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
-  switch_buff_srv_->callService();
-  switch_detection_srv_->callService();
-  switch_buff_type_srv_->callService();
-  switch_exposure_srv_->callService();
-  if (is_gyro_)
-    changeGyroSpeedMode(LOW);
-  last_shoot_freq_ = shooter_cmd_sender_->getShootFrequency();
-  shooter_cmd_sender_->setShootFrequency(rm_common::HeatLimit::MINIMAL);
-}
-
-void ChassisGimbalShooterCoverManual::ctrlERelease()
-{
-  ChassisGimbalShooterManual::eRelease();
-  switch_buff_srv_->setTargetType(rm_msgs::StatusChangeRequest::ARMOR);
-  switch_detection_srv_->setTargetType(rm_msgs::StatusChangeRequest::ARMOR);
-  switch_buff_type_srv_->setTargetType(switch_buff_srv_->getTarget());
-  switch_exposure_srv_->setTargetType(rm_msgs::StatusChangeRequest::ARMOR);
-  switch_buff_srv_->callService();
-  switch_detection_srv_->callService();
-  switch_buff_type_srv_->callService();
-  switch_exposure_srv_->callService();
-  shooter_cmd_sender_->setShootFrequency(last_shoot_freq_);
-  if (is_gyro_)
-    changeGyroSpeedMode(NORMAL);
-}
-
 void ChassisGimbalShooterCoverManual::bPress()
 {
 }
@@ -402,6 +368,34 @@ void ChassisGimbalShooterCoverManual::dRelease()
 
 void ChassisGimbalShooterCoverManual::zPress()
 {
+  switch_buff_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
+  switch_detection_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
+  switch_buff_type_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
+  switch_exposure_srv_->setTargetType(rm_msgs::StatusChangeRequest::BIG_BUFF);
+  switch_buff_srv_->callService();
+  switch_detection_srv_->callService();
+  switch_buff_type_srv_->callService();
+  switch_exposure_srv_->callService();
+  if (is_gyro_)
+    changeGyroSpeedMode(LOW);
+  last_shoot_freq_ = shooter_cmd_sender_->getShootFrequency();
+  shooter_cmd_sender_->setShootFrequency(rm_common::HeatLimit::MINIMAL);
+}
+
+void ChassisGimbalShooterCoverManual::zRelease()
+{
+  ChassisGimbalShooterManual::eRelease();
+  switch_buff_srv_->setTargetType(rm_msgs::StatusChangeRequest::ARMOR);
+  switch_detection_srv_->setTargetType(rm_msgs::StatusChangeRequest::ARMOR);
+  switch_buff_type_srv_->setTargetType(switch_buff_srv_->getTarget());
+  switch_exposure_srv_->setTargetType(rm_msgs::StatusChangeRequest::ARMOR);
+  switch_buff_srv_->callService();
+  switch_detection_srv_->callService();
+  switch_buff_type_srv_->callService();
+  switch_exposure_srv_->callService();
+  shooter_cmd_sender_->setShootFrequency(last_shoot_freq_);
+  if (is_gyro_)
+    changeGyroSpeedMode(NORMAL);
 }
 
 void ChassisGimbalShooterCoverManual::rPress()
@@ -418,7 +412,9 @@ void ChassisGimbalShooterCoverManual::ctrlZPress()
 {
 }
 
-void ChassisGimbalShooterCoverManual::ctrlZRelease(){};
+void ChassisGimbalShooterCoverManual::ctrlZRelease()
+{
+}
 
 void ChassisGimbalShooterCoverManual::ctrlXPress()
 {

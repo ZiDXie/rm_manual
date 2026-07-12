@@ -59,6 +59,7 @@ protected:
   {
   }
   void zPress() override;
+  void zRelease();
   void ctrlCPress() override
   {
   }
@@ -67,8 +68,6 @@ protected:
   virtual void ctrlZPress();
   virtual void ctrlZRelease();
   virtual void ctrlXPress();
-  virtual void ctrlEPress();
-  virtual void ctrlERelease();
 
   void getPitchErr(double& position);
 
@@ -83,7 +82,7 @@ protected:
   rm_common::SwitchDetectionCaller* switch_buff_type_srv_{};
   rm_common::SwitchDetectionCaller* switch_exposure_srv_{};
 
-  InputEvent ctrl_z_event_, z_event_, ctrl_e_event_;
+  InputEvent ctrl_z_event_, z_event_;
 
   std::string wireless_frame_;
   ros::Time last_switch_time_;
