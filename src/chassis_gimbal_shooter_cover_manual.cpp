@@ -467,4 +467,18 @@ void ChassisGimbalShooterCoverManual::shiftPress()
   chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::BURST);
 }
 
+void ChassisGimbalShooterCoverManual::gimbalOutputOn()
+{
+  ChassisGimbalShooterManual::gimbalOutputOn();
+  if (base_pitch_pub_)
+  {
+    zipped_ = false;
+    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
+    double pitch_err = 0.0;
+    getPitchErr(pitch_err);
+    double cmd_rate = zipped_pitch_rate_pid_->computeCommand(pitch_err, ros::Duration(0.01));
+    gimbal_cmd_sender_->getMsg()->rate_pitch = cmd_rate;
+  }
+}
+
 }  // namespace rm_manual

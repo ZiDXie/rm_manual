@@ -74,6 +74,13 @@ protected:
     if (shooter_cmd_sender_->getMsg()->mode == rm_msgs::ShootCmd::PUSH)
       shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
   }
+  void mouseRightEdgeRising();
+  void mouseRightEdgeFalling()
+  {
+    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
+    if (shooter_cmd_sender_->getMsg()->mode == rm_msgs::ShootCmd::PUSH)
+      shooter_cmd_sender_->setMode(rm_msgs::ShootCmd::READY);
+  }
   void wPress() override;
   void aPress() override;
   void sPress() override;
@@ -128,6 +135,8 @@ protected:
   rm_common::SwitchDetectionCaller* switch_detection_srv_{};
   rm_common::SwitchDetectionCaller* switch_detection_left_srv_{};
   rm_common::SwitchDetectionCaller* switch_armor_target_srv_{};
+  rm_common::ColorChangeServiceCaller* color_change_srv_{};
+  rm_common::TrackerResetServiceCaller* tracker_reset_srv_{};
 
   rm_common::CalibrationQueue* chassis_calibration_;
   rm_common::CalibrationQueue* shooter_calibration_;

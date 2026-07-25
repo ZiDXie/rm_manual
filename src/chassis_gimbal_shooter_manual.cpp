@@ -45,6 +45,10 @@ ChassisGimbalShooterManual::ChassisGimbalShooterManual(ros::NodeHandle& nh, ros:
 
   ros::NodeHandle detection_switch_nh(nh, "detection_switch");
   switch_detection_srv_ = new rm_common::SwitchDetectionCaller(detection_switch_nh);
+  ros::NodeHandle color_change_nh(nh, "/superpower_track_vision/color_change");
+  color_change_srv_ = new rm_common::ColorChangeServiceCaller(color_change_nh);
+  ros::NodeHandle tracker_reset_nh(nh, "reset_tracker");
+  tracker_reset_srv_ = new rm_common::TrackerResetServiceCaller(tracker_reset_nh);
   ros::NodeHandle detection_switch_left_nh(nh, "detection_switch_left");
   switch_detection_left_srv_ = new rm_common::SwitchDetectionCaller(detection_switch_left_nh);
   ros::NodeHandle armor_target_switch_nh(nh, "armor_target_switch");
@@ -99,6 +103,8 @@ ChassisGimbalShooterManual::ChassisGimbalShooterManual(ros::NodeHandle& nh, ros:
   mouse_left_event_.setFalling(boost::bind(&ChassisGimbalShooterManual::mouseLeftRelease, this));
   mouse_right_event_.setActiveHigh(boost::bind(&ChassisGimbalShooterManual::mouseRightPress, this));
   mouse_right_event_.setFalling(boost::bind(&ChassisGimbalShooterManual::mouseRightRelease, this));
+  mouse_right_event_.setEdge(boost::bind(&ChassisGimbalShooterManual::mouseRightEdgeRising, this),
+                             boost::bind(&ChassisGimbalShooterManual::mouseRightEdgeFalling, this));
 }
 
 void ChassisGimbalShooterManual::run()
@@ -396,10 +402,8 @@ void ChassisGimbalShooterManual::updateRc(const rm_msgs::DbusData::ConstPtr& dbu
   vel_cmd_sender_->setAngularZVel((std::abs(dbus_data->ch_r_y) > 0.01 || std::abs(dbus_data->ch_r_x) > 0.01) ?
                                       dbus_data->wheel * gyro_rotate_reduction_ :
                                       dbus_data->wheel);
-  vel_cmd_sender_->setLinearXVel(is_gyro_ ? dbus_data->ch_r_y * gyro_move_reduction_ :
-                                            dbus_data->ch_r_y * speed_change_scale_);
-  vel_cmd_sender_->setLinearYVel(is_gyro_ ? -dbus_data->ch_r_x * gyro_move_reduction_ :
-                                            -dbus_data->ch_r_x * speed_change_scale_);
+  vel_cmd_sender_->setLinearXVel(is_gyro_ ? dbus_data->ch_r_y * gyro_move_reduction_ : dbus_data->ch_r_y);
+  vel_cmd_sender_->setLinearYVel(is_gyro_ ? -dbus_data->ch_r_x * gyro_move_reduction_ : -dbus_data->ch_r_x);
 
   if (shooter_cmd_sender_->getMsg()->mode != rm_msgs::ShootCmd::STOP)
     gimbal_cmd_sender_->setBulletSpeed(shooter_cmd_sender_->getSpeed());
@@ -539,7 +543,10 @@ void ChassisGimbalShooterManual::mouseRightPress()
     }
   }
 }
-
+void ChassisGimbalShooterManual::mouseRightEdgeRising()
+{
+  tracker_reset_srv_->reset();
+}
 void ChassisGimbalShooterManual::ePress()
 {
   switch_armor_target_srv_->setArmorTargetType(rm_msgs::StatusChangeRequest::ARMOR_OUTPOST_BASE);
@@ -875,6 +882,7 @@ void ChassisGimbalShooterManual::ctrlRRelease()
 
 void ChassisGimbalShooterManual::ctrlBPress()
 {
+  color_change_srv_->changeColor();
   switch_detection_srv_->switchEnemyColor();
   switch_detection_srv_->callService();
 }

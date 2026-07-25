@@ -70,6 +70,7 @@ protected:
   virtual void ctrlXPress();
 
   void getPitchErr(double& position);
+  void gimbalOutputOn() override;
 
   double low_speed_scale_{}, normal_speed_scale_{};
   double exit_buff_mode_duration_{};
@@ -82,7 +83,7 @@ protected:
   rm_common::SwitchDetectionCaller* switch_buff_type_srv_{};
   rm_common::SwitchDetectionCaller* switch_exposure_srv_{};
 
-  InputEvent ctrl_z_event_, z_event_;
+  InputEvent ctrl_z_event_;
 
   std::string wireless_frame_;
   ros::Time last_switch_time_;
