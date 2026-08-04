@@ -39,8 +39,6 @@ ChassisGimbalManual::ChassisGimbalManual(ros::NodeHandle& nh, ros::NodeHandle& n
 
 void ChassisGimbalManual::sendCommand(const ros::Time& time)
 {
-  if (wheels_offline_)
-    vel_cmd_sender_->setZero();
   chassis_cmd_sender_->sendChassisCommand(time, is_gyro_);
   vel_cmd_sender_->sendCommand(time);
   gimbal_cmd_sender_->sendCommand(time);

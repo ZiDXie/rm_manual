@@ -111,7 +111,6 @@ void ChassisGimbalShooterCoverManual::changeGyroSpeedMode(SpeedMode speed_mode)
 void ChassisGimbalShooterCoverManual::updatePc(const rm_msgs::DbusData::ConstPtr& dbus_data)
 {
   ChassisGimbalShooterManual::updatePc(dbus_data);
-  gimbal_cmd_sender_->setRate(-dbus_data->m_x * gimbal_scale_, -dbus_data->m_y * gimbal_scale_);
   if (is_gyro_)
   {
     if (switch_buff_srv_->getTarget() != rm_msgs::StatusChangeRequest::ARMOR)
@@ -469,16 +468,8 @@ void ChassisGimbalShooterCoverManual::shiftPress()
 
 void ChassisGimbalShooterCoverManual::gimbalOutputOn()
 {
+  gimbal_output_on_time_ = ros::Time::now();
   ChassisGimbalShooterManual::gimbalOutputOn();
-  if (base_pitch_pub_)
-  {
-    zipped_ = false;
-    gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
-    double pitch_err = 0.0;
-    getPitchErr(pitch_err);
-    double cmd_rate = zipped_pitch_rate_pid_->computeCommand(pitch_err, ros::Duration(0.01));
-    gimbal_cmd_sender_->getMsg()->rate_pitch = cmd_rate;
-  }
 }
 
 }  // namespace rm_manual

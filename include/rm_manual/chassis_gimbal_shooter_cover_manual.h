@@ -87,6 +87,7 @@ protected:
 
   std::string wireless_frame_;
   ros::Time last_switch_time_;
+  ros::Time gimbal_output_on_time_;
   bool need_wireless_{ false };
   int count_{};
 

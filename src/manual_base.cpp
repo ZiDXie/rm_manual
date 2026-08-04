@@ -17,13 +17,12 @@ ManualBase::ManualBase(ros::NodeHandle& nh, ros::NodeHandle& nh_referee)
   actuator_state_sub_ =
       nh.subscribe<rm_msgs::ActuatorState>("/actuator_states", 10, &ManualBase::actuatorStateCallback, this);
   dbus_sub_ = nh.subscribe<rm_msgs::DbusData>(dbus_topic_, 10, &ManualBase::dbusDataCallback, this);
-  track_sub_ = nh.subscribe<rm_msgs::TrackData>("/track", 10, &ManualBase::trackCallback, this);
+  track_sub_ = nh.subscribe<rm_msgs::TrackData>("/sp_vision/track", 10, &ManualBase::trackCallback, this);
   gimbal_des_error_sub_ = nh.subscribe<rm_msgs::GimbalDesError>("/controllers/gimbal_controller/error", 10,
                                                                 &ManualBase::gimbalDesErrorCallback, this);
   odom_sub_ = nh.subscribe<nav_msgs::Odometry>("/odom", 10, &ManualBase::odomCallback, this);
-  shoot_beforehand_cmd_sub_ =
-      nh.subscribe<rm_msgs::ShootBeforehandCmd>("/controllers/gimbal_controller/bullet_solver/shoot_beforehand_cmd", 10,
-                                                &ManualBase::shootBeforehandCmdCallback, this);
+  shoot_beforehand_cmd_sub_ = nh.subscribe<rm_msgs::ShootBeforehandCmd>(
+      "/controllers/gimbal_controller/shoot_beforehand_cmd", 10, &ManualBase::shootBeforehandCmdCallback, this);
   suggest_fire_sub_ =
       nh.subscribe<std_msgs::Bool>("/forecast/suggest_fire", 10, &ManualBase::suggestFireCallback, this);
 

@@ -143,7 +143,7 @@ protected:
   rm_common::CalibrationQueue* gimbal_calibration_;
 
   ros::Subscriber wheel_online_sub_;
-  ros::Time last_wheels_power_time_;
+  ros::Time chassis_output_on_time_;
   std::vector<std::string> chassis_motor_;
   std::vector<bool> wheels_online_state_;
 
@@ -153,7 +153,7 @@ protected:
 
   bool prepare_shoot_{ false }, is_balance_{ false }, use_scope_{ false }, adjust_image_transmission_{ false },
       up_change_position_{ false }, low_change_position_{ false }, need_change_position_{ false }, deployed_{ false },
-      is_follow_yaw_reverse_{ false }, all_wheel_offline_{ false };
+      is_follow_yaw_reverse_{ false }, wheel_check_started_{ false }, wheels_offline_{ false };
   double ballistic_yaw_{}, ballistic_pitch_{};
   double ballistic_yaw_step_{}, ballistic_pitch_step_{};
   double scale_{};

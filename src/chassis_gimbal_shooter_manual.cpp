@@ -67,7 +67,7 @@ ChassisGimbalShooterManual::ChassisGimbalShooterManual(ros::NodeHandle& nh, ros:
   {
     for (int i = 0; i < rpc_value.size(); i++)
       chassis_motor_.push_back(rpc_value[i]);
-    wheels_online_state_.resize(chassis_motor_.size(), true);
+    wheels_online_state_.resize(chassis_motor_.size(), false);
   }
 
   shooter_power_on_event_.setRising(boost::bind(&ChassisGimbalShooterManual::shooterOutputOn, this));
@@ -135,37 +135,41 @@ void ChassisGimbalShooterManual::checkReferee()
   manual_to_referee_pub_data_.det_color = switch_detection_srv_->getColor();
   manual_to_referee_pub_data_.det_exposure = switch_detection_srv_->getExposureLevel();
   manual_to_referee_pub_data_.stamp = ros::Time::now();
-  checkWheelsOnline();
   ChassisGimbalManual::checkReferee();
+  checkWheelsOnline();
 }
 
 void ChassisGimbalShooterManual::checkWheelsOnline()
 {
-  bool all_wheels_online = true, exist_wheel_online = false;
-  for (auto wheel_status : wheels_online_state_)
+  if (!wheel_check_started_)
+    return;
+
+  if (!chassis_output_on_)
   {
-    if (wheel_status)
-      exist_wheel_online = true;
-  }
-  if (!exist_wheel_online)
-    all_wheel_offline_ = true;
-  if (all_wheel_offline_ && exist_wheel_online)
-  {
-    last_wheels_power_time_ = ros::Time::now();
-    all_wheel_offline_ = false;
-  }
-  if (ros::Time::now() - last_wheels_power_time_ < ros::Duration(3.0))
-  {
-    for (auto wheel_status : wheels_online_state_)
-    {
-      if (!wheel_status)
-        all_wheels_online = false;
-    }
-  }
-  if (!all_wheels_online)
-    wheels_offline_ = true;
-  else if (wheels_offline_)
+    wheel_check_started_ = false;
     wheels_offline_ = false;
+    return;
+  }
+
+  if (ros::Time::now() - chassis_output_on_time_ < ros::Duration(3.0))
+  {
+    wheels_offline_ = wheels_online_state_.empty();
+    for (const auto wheel_online : wheels_online_state_)
+    {
+      if (!wheel_online)
+      {
+        wheels_offline_ = true;
+        break;
+      }
+    }
+
+    setChassisMode(wheels_offline_ ? rm_msgs::ChassisCmd::FALLEN : rm_msgs::ChassisCmd::FOLLOW);
+    return;
+  }
+
+  wheel_check_started_ = false;
+  wheels_offline_ = false;
+  setChassisMode(rm_msgs::ChassisCmd::FOLLOW);
 }
 
 void ChassisGimbalShooterManual::checkKeyboard(const rm_msgs::DbusData::ConstPtr& dbus_data)
@@ -373,6 +377,8 @@ void ChassisGimbalShooterManual::chassisOutputOn()
   ChassisGimbalManual::chassisOutputOn();
   chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::CHARGE);
   chassis_calibration_->reset();
+  wheel_check_started_ = true;
+  chassis_output_on_time_ = ros::Time::now();
 }
 
 void ChassisGimbalShooterManual::shooterOutputOn()
