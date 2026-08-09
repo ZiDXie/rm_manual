@@ -46,7 +46,7 @@ void BalanceManual::rightSwitchDownRise()
   ChassisGimbalShooterCoverManual::rightSwitchDownRise();
   state_ = RC;
   chassis_cmd_sender_->setMode(rm_msgs::ChassisCmd::FALLEN);
-  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::CHARGE);
+  chassis_cmd_sender_->power_limit_->updateState(rm_common::PowerLimit::NORMAL);
 }
 
 void BalanceManual::rightSwitchMidRise()
