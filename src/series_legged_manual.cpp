@@ -108,8 +108,7 @@ void SeriesLeggedManual::sendCommand(const ros::Time& time)
   }
   else
   {
-    // if debug jump , u can delete it
-    //    legCommandSender_->setJump(false);
+    legCommandSender_->setJump(false);
   }
   legCommandSender_->sendCommand(time);
 }
@@ -331,11 +330,6 @@ void SeriesLeggedManual::leggedChassisModeCallback(const rm_msgs::LeggedChassisM
         }
       }
     }
-    if (down_5cm_stair_flag_)
-    {
-      down_5cm_stair_flag_ = false;
-      setLegLenStatus(SHORT);
-    }
     trigger_gimbal_normal_flag = true;
     speed_change_scale_ = leg_len_status_ == HIGH ? 0.7 : 1.0;
   }
@@ -347,6 +341,12 @@ void SeriesLeggedManual::leggedChassisModeCallback(const rm_msgs::LeggedChassisM
       trigger_gimbal_normal_flag = false;
       gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
     }
+  }
+  if (down_5cm_stair_flag_)
+  {
+    down_5cm_stair_flag_ = false;
+    setLegLenStatus(SHORT);
+    speed_change_scale_ = 1.0;
   }
 }
 
@@ -366,6 +366,8 @@ void SeriesLeggedManual::leftSwitchUpRise()
   //  upstair_leg_len_fsm_ = 1;
   //  setLegLenStatus(HIGH);
 
+  // <unused>
+  //  legCommandSender_->setJump(true);
   return;
 }
 
@@ -375,6 +377,10 @@ void SeriesLeggedManual::leftSwitchMidRise()
   //  legCommandSender_->setJump(false);
   //  upstair_leg_len_fsm_ = 0;
   //  setLegLenStatus(MID);
+
+  //  legCommandSender_->setJump(false);
+  //  upstair_leg_len_fsm_ = 0;
+  //  setLegLenStatus(SHORT);
 
   // <unused>
   //  legCommandSender_->setJump(true);
@@ -386,6 +392,10 @@ void SeriesLeggedManual::leftSwitchDownRise()
   legCommandSender_->setJump(false);
   upstair_leg_len_fsm_ = 0;
   setLegLenStatus(SHORT);
+
+  //  legCommandSender_->setJump(false);
+  //  upstair_leg_len_fsm_ = 0;
+  //  setLegLenStatus(MID);
 }
 void SeriesLeggedManual::zPress()
 {
@@ -509,6 +519,7 @@ void SeriesLeggedManual::qPress()
 {
   ChassisGimbalShooterCoverManual::qPress();
   down_5cm_stair_flag_ = jump_up_flag_ = false;
+  legCommandSender_->setJump(false);
   setLegLenStatus(SHORT);
 }
 
@@ -528,8 +539,7 @@ void SeriesLeggedManual::vPress()
 {
   std_srvs::Trigger srv;
   down_5cm_stair_client_.call(srv);
-  setLegLenStatus(MID);
-  speed_change_scale_ = 0.5f;
+  speed_change_scale_ = 0.2f;
   down_5cm_stair_flag_ = true;
 }
 void SeriesLeggedManual::vRelease()
