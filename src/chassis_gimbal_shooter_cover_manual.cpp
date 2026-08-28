@@ -12,9 +12,7 @@ ChassisGimbalShooterCoverManual::ChassisGimbalShooterCoverManual(ros::NodeHandle
   if (nh.hasParam("base_pitch"))
   {
     ros::NodeHandle base_pitch_nh(nh, "base_pitch");
-    std::string base_pitch_topic{};
-    base_pitch_nh.param("topic", base_pitch_topic, std::string("/controllers/base_pitch_controller/command"));
-    base_pitch_pub_ = base_pitch_nh.advertise<std_msgs::Float64>(base_pitch_topic, 1);
+    base_pitch_cmd_sender_ = new rm_common::JointPositionBinaryCommandSender(base_pitch_nh);
     zipped_pitch_rate_pid_ = std::make_shared<control_toolbox::Pid>();
     if (base_pitch_nh.hasParam("zipped_pitch_rate_pid"))
     {
@@ -186,12 +184,11 @@ void ChassisGimbalShooterCoverManual::sendCommand(const ros::Time& time)
   else
     chassis_cmd_sender_->getMsg()->follow_source_frame = "yaw";
 
-  if (base_pitch_pub_)
+  if (base_pitch_cmd_sender_)
   {
-    std_msgs::Float64 cmd;
     if (zipped_)
     {
-      cmd.data = 0.0;
+      base_pitch_cmd_sender_->off();
       gimbal_cmd_sender_->setMode(rm_msgs::GimbalCmd::RATE);
       double pitch_err = 0.0;
       getPitchErr(pitch_err);
@@ -200,9 +197,9 @@ void ChassisGimbalShooterCoverManual::sendCommand(const ros::Time& time)
     }
     else
     {
-      cmd.data = 0.5;
+      base_pitch_cmd_sender_->on();
     }
-    base_pitch_pub_.publish(cmd);
+    base_pitch_cmd_sender_->sendCommand(time);
   }
   ChassisGimbalShooterManual::sendCommand(time);
 }

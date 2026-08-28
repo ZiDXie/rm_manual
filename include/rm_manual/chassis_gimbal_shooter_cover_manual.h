@@ -6,7 +6,6 @@
 
 #include "rm_manual/chassis_gimbal_shooter_manual.h"
 
-#include <std_msgs/Float64.h>
 #include <algorithm>
 #include <rm_common/math_utilities.h>
 #include <control_toolbox/pid.h>
@@ -76,7 +75,7 @@ protected:
   double gyro_speed_limit_{};
   double sin_gyro_base_scale_{ 1. }, sin_gyro_amplitude_{ 0. }, sin_gyro_period_{ 1. }, sin_gyro_phase_{ 0. };
 
-  ros::Publisher base_pitch_pub_;
+  rm_common::JointPositionBinaryCommandSender* base_pitch_cmd_sender_{};  // for jelly standard
 
   rm_common::SwitchDetectionCaller* switch_buff_srv_{};
   rm_common::SwitchDetectionCaller* switch_buff_type_srv_{};
